@@ -55,6 +55,7 @@ def run(init_position,
         max_restore_nums=3,
         num_hosts=1,
         host_idx=0,
+        batch_size=500
 
         # Below are  Debug/Logging related arguments:
         debug_mode=False,
@@ -208,7 +209,7 @@ def run(init_position,
         else:
 
             # The energy calculation function for the initial trial energy.
-            calc_energy_func = make_calc_energy_func(local_energy_func, clip_pair=energy_clip_pair)
+            calc_energy_func = make_calc_energy_func(local_energy_func, clip_pair=energy_clip_pair,batch_size=batch_size)
             # Both `state` and `state_from_ckpt` are None, fall back to some default value.
             state = State.default(
                 init_position=init_position,
