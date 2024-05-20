@@ -158,14 +158,14 @@ def local_energy(f, atoms, charges, el_partition_num=0):
 
   return _e_l
 
-def make_calc_energy_func(el_fun, clip_pair=None):
+def make_calc_energy_func(el_fun, clip_pair=None, batch_size=500):
     '''
     A factory for averaged energy calculation using local_energy func `el_fun` on a batch of walkers.
     '''
     # position and mask are vectorized, not params
     vmap_in_axes = (0, 0)
     pmap_in_axes = (0, 0)
-
+    from jaxite.jaxite_lib import jax_helpers
     def local_energy_func_with_mask(position, mask):
         return jax.lax.cond(
             mask,
@@ -175,7 +175,7 @@ def make_calc_energy_func(el_fun, clip_pair=None):
 
     num_device = jax.local_device_count()
     pmaped_energy_func = jax.pmap(
-        jax.vmap(local_energy_func_with_mask, in_axes=vmap_in_axes),
+        jax_helpers.batch_vmap(local_energy_func_with_mask, in_axes=vmap_in_axes, batch_size=batch_size),
         in_axes=pmap_in_axes)
 
     def calc_energy(flatten_position):
