@@ -55,7 +55,7 @@ def run(init_position,
         max_restore_nums=3,
         num_hosts=1,
         host_idx=0,
-        batch_size=500
+        batch_size=500,
 
         # Below are  Debug/Logging related arguments:
         debug_mode=False,
