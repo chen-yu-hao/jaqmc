@@ -156,7 +156,7 @@ def run(init_position,
         remote_storage_handler: The storage handler to interact with remote storage system.
     """
     vmc_wave_func = lambda x: vmc_wave_func_with_sign(x)[1]
-
+    global batch_size
     if energy_window_size < 0:
         energy_window_size = num_steps
 
@@ -807,6 +807,7 @@ def make_step(vmc_wave_func_with_sign, velocity_func, local_energy_func,
     `do_padding=False`, in which case no padding procedure would be invoked.
     '''
     num_device = jax.local_device_count()
+    global batch_size
     run_dmc_single_walker_closure = lambda mask, z, age, local_energy, key, energy_offset, mixed_estimator: run_dmc_single_walker(
         ebye_move, mask, z, age, local_energy,
         vmc_wave_func_with_sign, velocity_func, local_energy_func,
@@ -824,8 +825,8 @@ def make_step(vmc_wave_func_with_sign, velocity_func, local_energy_func,
     in_axes = (0, 0, 0, 0, 0, None, None)
     jitted_vmapped_func = jax.jit(jax.vmap(run_dmc_single_walker_closure, in_axes=in_axes))
     pmaped_func = jax.pmap(jitted_vmapped_func, in_axes=in_axes)
-
-    local_energy_jitted_vmapped_func = jax.jit(jax.vmap(local_energy_func))
+    from jaxite.jaxite_lib import jax_helpers
+    local_energy_jitted_vmapped_func = jax.jit(jax_helpers.batch_vmap(local_energy_func,batch_size=batch_size))
     local_energy_pmaped_func = jax.pmap(local_energy_jitted_vmapped_func)
 
 
