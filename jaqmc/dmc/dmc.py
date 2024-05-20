@@ -156,7 +156,6 @@ def run(init_position,
         remote_storage_handler: The storage handler to interact with remote storage system.
     """
     vmc_wave_func = lambda x: vmc_wave_func_with_sign(x)[1]
-    global batch_size
     if energy_window_size < 0:
         energy_window_size = num_steps
 
@@ -240,7 +239,7 @@ def run(init_position,
         energy_cutoff_alpha=energy_cutoff_alpha,
         energy_clip_pair=energy_clip_pair,
         do_padding=do_padding,
-        ebye_move=ebye_move)
+        ebye_move=ebye_move,batch_size=batch_size)
 
     if mixed_estimator_calculator is None:
         mixed_estimator_calculator = MixedEstimatorCalculator(
@@ -789,7 +788,8 @@ def make_step(vmc_wave_func_with_sign, velocity_func, local_energy_func,
               energy_cutoff_alpha,
               energy_clip_pair=None,
               do_padding=True,
-              ebye_move=False):
+              ebye_move=False,
+              batch_size=400):
     '''
     The "step" here is responsible for updating walkers' positions and weights with pmap
     The wrapper handle the following logic:
@@ -807,7 +807,6 @@ def make_step(vmc_wave_func_with_sign, velocity_func, local_energy_func,
     `do_padding=False`, in which case no padding procedure would be invoked.
     '''
     num_device = jax.local_device_count()
-    global batch_size
     run_dmc_single_walker_closure = lambda mask, z, age, local_energy, key, energy_offset, mixed_estimator: run_dmc_single_walker(
         ebye_move, mask, z, age, local_energy,
         vmc_wave_func_with_sign, velocity_func, local_energy_func,
